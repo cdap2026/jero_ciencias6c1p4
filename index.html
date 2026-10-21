@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Adaptada Visual 3D - Grado 6° | Gimnasio Cristiano Faro de Luz</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRious para código QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- jsPDF para reporte PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --navy-dark: #081b38;
+            --navy-mid: #153866;
+            --gold: #c89d28;
+            --emerald: #059669;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top, #153866 0%, #081b38 65%, #040d1d 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(15, 35, 68, 0.84);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(200, 157, 40, 0.35);
+            box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.65);
+        }
+        .question-3d-img {
+            width: 100%;
+            min-height: 420px;
+            max-height: 520px;
+            object-fit: contain;
+            border-radius: 1rem;
+            cursor: zoom-in;
+            background: radial-gradient(circle at center, #112a4e 0%, #071426 100%);
+            border: 2px solid rgba(200, 157, 40, 0.45);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .question-3d-img:hover {
+            box-shadow: 0 0 28px rgba(200, 157, 40, 0.4);
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn.selected {
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.38) 0%, rgba(4, 120, 87, 0.55) 100%);
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+            transform: translateY(-2px);
+        }
+        @media (max-width: 640px) {
+            .question-3d-img {
+                min-height: 270px;
+                max-height: 360px;
+            }
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- BARRA SUPERIOR INFORMATIVA (100% VISUAL - SIN SONÓMETRO NI PENALIZACIONES) -->
+    <div class="sticky top-0 z-40 bg-[#06152d]/95 backdrop-blur-md border-b border-[#c89d28]/40 px-4 py-2.5 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-lg">
+                    👁️
+                </span>
+                <div>
+                    <span class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-emerald-300 block">
+                        Modalidad Adaptada Visual 3D • PIAR
+                    </span>
+                    <span class="text-xs text-slate-300">
+                        Sin límite de tiempo por pregunta • Navegación libre entre las 15 preguntas
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 ml-auto">
+                <!-- Reloj en vivo e indicador de tiempo transcurrido -->
+                <div class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200">
+                    <span>🕒 Hora: <strong id="liveClockDisplay" class="text-amber-300">--:--:--</strong></span>
+                    <span class="text-slate-600">|</span>
+                    <span>Tiempo en prueba: <strong id="elapsedTimeDisplay" class="text-emerald-300">00:00</strong></span>
+                </div>
+
+                <!-- Botón Acceso Docente siempre visible -->
+                <button onclick="openTeacherModal()" class="flex items-center gap-2 bg-gradient-to-r from-[#c89d28] to-amber-500 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md transition transform active:scale-95">
+                    <span>🔑 Acceso Docente</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CABECERA CON BANNER INSTITUCIONAL -->
+    <header class="max-w-6xl mx-auto px-4 pt-5">
+        <div class="glass-card rounded-2xl p-3 sm:p-4 overflow-hidden">
+            <img id="headerBannerImg"
+                 src="6°_CIENCIAS DE LA CREACIÓN.png"
+                 alt="Banner Institucional 6° Ciencias de la Creación - Gimnasio Cristiano Faro de Luz"
+                 class="w-full h-auto max-h-44 object-contain rounded-xl mx-auto"
+                 onerror="handleBannerError(this)">
+            <div id="studentTopBar" class="hidden mt-3 pt-3 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-300 font-bold">
+                        👤 Estudiante:
+                    </span>
+                    <span id="activeStudentName" class="font-extrabold text-white text-base">ESTUDIANTE</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-bold">
+                        ✅ Respondidas: <span id="answeredCountBadge">0</span> / 15
+                    </span>
+                    <button onclick="toggleExtraVisualHelp()" id="btnToggleHelpTop" class="px-3 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-200 font-bold text-xs transition">
+                        💡 Pistas Visuales: ACTIVAS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="max-w-6xl mx-auto px-4 mt-6">
+
+        <!-- ==========================================
+             1. PANTALLA DE BIENVENIDA CLARA Y VISUAL
+             ========================================== -->
+        <section id="welcomeScreen" class="glass-card rounded-3xl p-6 sm:p-8 space-y-8">
+            <div class="text-center space-y-3">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-300 text-xs sm:text-sm font-extrabold uppercase tracking-wider">
+                    🌿 Evaluación por Competencias • Apoyo Visual 3D • Grado 6°
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    Sistemática, Taxonomía y Morfología Vegetal
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base max-w-3xl mx-auto">
+                    Gimnasio Cristiano Faro de Luz • Docente: <strong class="text-amber-300">Cristian David Ayazo</strong> • Asignatura: <strong class="text-emerald-300">Ciencias de la Creación (Grado 6°)</strong>
+                </p>
+            </div>
+
+            <!-- 3 Tarjetas Visuales de los Temas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-slate-900/75 border-2 border-sky-500/40 rounded-2xl p-5 space-y-2 shadow-lg">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400 flex items-center justify-center text-2xl">
+                        🌳
+                    </div>
+                    <h3 class="text-lg font-extrabold text-sky-300">1. Sistemática y Filogenia</h3>
+                    <p class="text-sm text-slate-200 leading-relaxed">
+                        Observa <strong>árboles evolutivos 3D</strong> para descubrir qué especies son parientes cercanos y cómo comparten un ancestro común.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/75 border-2 border-amber-500/40 rounded-2xl p-5 space-y-2 shadow-lg">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl">
+                        🏷️
+                    </div>
+                    <h3 class="text-lg font-extrabold text-amber-300">2. Categorías y Claves</h3>
+                    <p class="text-sm text-slate-200 leading-relaxed">
+                        Ordena los niveles desde <strong>Dominio hasta Especie</strong>, reconoce el nombre científico de dos palabras y sigue pistas paso a paso.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/75 border-2 border-emerald-500/40 rounded-2xl p-5 space-y-2 shadow-lg">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl">
+                        🍃
+                    </div>
+                    <h3 class="text-lg font-extrabold text-emerald-300">3. Morfología de las Hojas</h3>
+                    <p class="text-sm text-slate-200 leading-relaxed">
+                        Identifica en modelos 3D las partes de la hoja (<strong>limbo, pecíolo y vaina</strong>), hojas simples o compuestas, bordes y nervaduras.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instrucciones Visuales Paso a Paso -->
+            <div class="bg-slate-950/80 border-2 border-[#c89d28]/50 rounded-2xl p-5 sm:p-6 space-y-4">
+                <h2 class="text-lg sm:text-xl font-extrabold text-amber-300 flex items-center gap-2">
+                    <span>📌</span> Instrucciones Visuales Paso a Paso
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
+                    <div class="flex items-start gap-3 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-2xl">🔍</span>
+                        <div>
+                            <strong class="text-amber-300 block">1. Observa la Lámina 3D con Zoom:</strong>
+                            Cada pregunta tiene una imagen 3D grande. Puedes tocar el botón <strong>"Ampliar Imagen 3D (Zoom +)"</strong> para ver todos los detalles.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-2xl">⏳</span>
+                        <div>
+                            <strong class="text-emerald-300 block">2. Lee con Calma y Sin Reloj en Contra:</strong>
+                            No hay límite de tiempo por pregunta. Lee el contexto breve y apóyate en el recuadro de <strong>Pista Visual</strong>.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-2xl">🧭</span>
+                        <div>
+                            <strong class="text-sky-300 block">3. Navega Libremente (1 a 15):</strong>
+                            Usa los botones numerados de arriba o las flechas para ir hacia adelante o volver a cualquier pregunta cuando quieras.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-2xl">✍️</span>
+                        <div>
+                            <strong class="text-purple-300 block">4. 14 Cerradas + 1 Abierta Guiada:</strong>
+                            Marca tu opción en las preguntas 1 a 14 y usa el <strong>Banco de Palabras Visual</strong> para responder la pregunta 15.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registro del Estudiante -->
+            <div class="bg-slate-900/90 border-2 border-emerald-500/50 rounded-2xl p-6 max-w-2xl mx-auto space-y-4">
+                <label for="studentNameInput" class="block text-base sm:text-lg font-extrabold text-white">
+                    ✍️ Escribe tus Nombres y Apellidos Completos:
+                </label>
+                <input id="studentNameInput"
+                       type="text"
+                       placeholder="Ejemplo: Samuel David Pérez Gómez"
+                       oninput="validateStudentName()"
+                       class="w-full px-4 py-3.5 rounded-xl bg-slate-950 border-2 border-slate-600 focus:border-amber-400 focus:outline-none text-white text-base sm:text-lg font-bold placeholder-slate-500">
+                <p id="nameValidationMsg" class="text-xs sm:text-sm text-amber-300 font-semibold flex items-center gap-2">
+                    <span>ℹ️</span> Escribe al menos tu primer nombre y primer apellido para habilitar el botón de inicio.
+                </p>
+                <button id="startExamBtn"
+                        onclick="startExam(false)"
+                        disabled
+                        class="w-full py-4 rounded-xl font-extrabold text-base sm:text-lg uppercase tracking-wider transition shadow-xl bg-slate-700 text-slate-400 cursor-not-allowed">
+                    🚀 Iniciar Evaluación Visual 3D
+                </button>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             2. PANTALLA DEL EXAMEN (NAVEGACIÓN LIBRE)
+             ========================================== -->
+        <section id="examScreen" class="hidden space-y-6">
+
+            <!-- MAPA VISUAL DE NAVEGACIÓN DE LAS 15 PREGUNTAS -->
+            <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-300">
+                        🧭 Mapa de Navegación Libre (Toca cualquier número para ir a esa pregunta):
+                    </span>
+                    <div class="flex items-center gap-3 text-xs font-bold">
+                        <span class="inline-flex items-center gap-1.5 text-amber-300"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Actual</span>
+                        <span class="inline-flex items-center gap-1.5 text-emerald-300"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Respondida</span>
+                        <span class="inline-flex items-center gap-1.5 text-slate-300"><span class="w-3 h-3 rounded-full bg-slate-700 border border-slate-500 inline-block"></span> Pendiente</span>
+                    </div>
+                </div>
+                <div id="questionNavGrid" class="grid grid-cols-5 sm:grid-cols-15 gap-2">
+                    <!-- Botones 1..15 generados dinámicamente -->
+                </div>
+            </div>
+
+            <!-- TARJETA PRINCIPAL DE LA PREGUNTA -->
+            <div class="glass-card rounded-3xl p-5 sm:p-8 space-y-6">
+
+                <!-- Encabezado de la pregunta -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-4">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <span id="qNumberBadge" class="px-4 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-sm sm:text-base shadow">
+                            Pregunta 1 de 15
+                        </span>
+                        <span id="qTypeBadge" class="px-3.5 py-1.5 rounded-xl bg-sky-500/20 border border-sky-400/50 text-sky-200 font-bold text-xs sm:text-sm">
+                            Selección Múltiple (Valor: 0.32 pts)
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="qTopicBadge" class="px-3 py-1 rounded-lg bg-purple-500/20 border border-purple-400/50 text-purple-200 font-bold text-xs sm:text-sm">
+                            🌿 Tema
+                        </span>
+                        <span id="qCompetencyBadge" class="px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-bold text-xs sm:text-sm">
+                            🔬 Competencia
+                        </span>
+                    </div>
+                </div>
+
+                <!-- LÁMINA ILUSTRATIVA 3D (.PNG / .JPG) EN GRAN TAMAÑO + BOTÓN DE ZOOM -->
+                <div class="bg-slate-950/90 border-2 border-[#c89d28]/50 rounded-2xl p-3 sm:p-4 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-1">
+                        <span class="text-xs sm:text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                            <span>🖼️</span> Lámina Ilustrativa 3D de Alta Claridad (Formato .PNG)
+                        </span>
+                        <button onclick="openZoomModal()" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow transition transform active:scale-95">
+                            <span>🔍 Ampliar Imagen 3D (Zoom +)</span>
+                        </button>
+                    </div>
+
+                    <div class="relative flex items-center justify-center overflow-hidden rounded-xl">
+                        <img id="question3DImage"
+                             src=""
+                             alt="Lámina Ilustrativa 3D de la pregunta"
+                             class="question-3d-img"
+                             onclick="openZoomModal()">
+                    </div>
+                </div>
+
+                <!-- RECUADRO DE PISTA VISUAL Y VOCABULARIO CLAVE -->
+                <div id="visualHintBox" class="bg-gradient-to-r from-sky-950/90 via-slate-900/95 to-emerald-950/90 border-2 border-sky-400/60 rounded-2xl p-4 sm:p-5 space-y-1.5 shadow-md">
+                    <div class="flex items-center gap-2 text-sky-300 font-extrabold text-sm sm:text-base">
+                        <span>💡</span>
+                        <span>Pista Visual y Vocabulario Clave (Observa en la imagen 3D):</span>
+                    </div>
+                    <p id="visualHintText" class="text-slate-100 text-sm sm:text-base leading-relaxed font-medium"></p>
+                </div>
+
+                <!-- CONTEXTO BREVE Y ENUNCIADO CLARO -->
+                <div class="bg-slate-900/85 border border-slate-700 rounded-2xl p-5 space-y-3">
+                    <div class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-300">
+                        📖 Situación Científica (Lee con atención):
+                    </div>
+                    <p id="questionContextText" class="text-slate-100 text-base sm:text-lg leading-relaxed"></p>
+                    <h2 id="questionStemText" class="text-lg sm:text-xl font-extrabold text-white pt-2 border-t border-slate-700/80 leading-snug"></h2>
+                </div>
+
+                <!-- CONTENEDOR DE OPCIONES (PREGUNTAS CERRADAS 1 A 14) -->
+                <div id="closedOptionsContainer" class="grid grid-cols-1 gap-3.5">
+                    <!-- Opciones A, B, C, D -->
+                </div>
+
+                <!-- CONTENEDOR DE PREGUNTA ABIERTA ADAPTADA (PREGUNTA 15) -->
+                <div id="openQuestionContainer" class="hidden space-y-4 bg-slate-900/90 border-2 border-emerald-500/50 rounded-2xl p-5 sm:p-6">
+                    <div class="space-y-2">
+                        <h3 class="text-base sm:text-lg font-extrabold text-emerald-300 flex items-center gap-2">
+                            <span>🧩</span> Guía de Apoyo y Banco de Palabras Visual (Toca una palabra para agregarla a tu respuesta):
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-300">
+                            Observa las dos hojas en la imagen 3D y explica con tus palabras: <strong>1)</strong> ¿Cuáles son las 3 partes principales de una hoja? y <strong>2)</strong> ¿En qué se diferencia una <strong>hoja simple</strong> de una <strong>hoja compuesta</strong>?
+                        </p>
+                        <div id="wordBankContainer" class="flex flex-wrap gap-2 pt-1">
+                            <!-- Chips interactivos de apoyo -->
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs sm:text-sm font-bold text-amber-300">
+                                ✍️ Escribe una idea clara de al menos <strong>10 palabras</strong> (1 o 2 oraciones sencillas):
+                            </span>
+                            <span id="openStatusBadge" class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 font-extrabold text-xs sm:text-sm">
+                                ⏳ Palabras escritas: 0 / 10 mínimo
+                            </span>
+                        </div>
+
+                        <textarea id="openAnswerTextarea"
+                                  rows="5"
+                                  oninput="handleOpenAnswerInput()"
+                                  placeholder="Escribe aquí tu respuesta... Ejemplo: Las partes de la hoja son el limbo, el pecíolo y la vaina. La hoja simple tiene una sola lámina y la hoja compuesta se divide en varios folíolos."
+                                  class="w-full p-4 rounded-xl bg-slate-950 border-2 border-slate-600 focus:border-emerald-400 focus:outline-none text-white text-base sm:text-lg leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE NAVEGACIÓN LIBRE (ANTERIOR / SIGUIENTE / ENTREGAR) -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-700/80">
+                    <button id="prevQuestionBtn"
+                            onclick="prevQuestion()"
+                            class="px-5 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-extrabold text-sm sm:text-base transition flex items-center gap-2">
+                        <span>⬅ Pregunta Anterior</span>
+                    </button>
+
+                    <div class="flex flex-wrap items-center gap-3 ml-auto">
+                        <button id="nextQuestionBtn"
+                                onclick="nextQuestion()"
+                                class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-sm sm:text-base shadow-lg transition flex items-center gap-2">
+                            <span>Siguiente Pregunta ➡</span>
+                        </button>
+
+                        <button onclick="openFinishConfirmModal()"
+                                class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm sm:text-base shadow-lg transition flex items-center gap-2">
+                            <span>✅ Finalizar y Entregar Examen</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==========================================
+             3. PANTALLA FINAL DE RESULTADOS, QR Y PDF
+             ========================================== -->
+        <section id="resultsScreen" class="hidden glass-card rounded-3xl p-6 sm:p-8 space-y-8">
+            <!-- Banner en Resultados -->
+            <div class="bg-slate-950/60 p-3 rounded-2xl border border-amber-500/30">
+                <img id="resultsBannerImg"
+                     src="6°_CIENCIAS DE LA CREACIÓN.png"
+                     alt="Banner Institucional Resultados"
+                     class="w-full h-auto max-h-40 object-contain rounded-xl mx-auto"
+                     onerror="handleBannerError(this)">
+            </div>
+
+            <div class="text-center space-y-2">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-xs sm:text-sm font-extrabold uppercase">
+                    ✅ Evaluación Adaptada Visual 3D Finalizada
+                </span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-white">Informe Oficial de Resultados</h2>
+                <p id="resultStudentSubtitle" class="text-amber-300 font-bold text-base sm:text-lg"></p>
+            </div>
+
+            <!-- 3 Tarjetas de Resumen -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Nota Definitiva -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-[#c89d28] rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-2 shadow-xl">
+                    <span class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-300">Calificación Definitiva</span>
+                    <div id="finalScoreDisplay" class="text-5xl sm:text-6xl font-extrabold text-white">0.00</div>
+                    <span class="text-xs text-slate-300 font-semibold">Escala Institucional de 0.00 a 5.00</span>
+                    <span id="performanceBadge" class="mt-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-extrabold">
+                        Modalidad Inclusión PIAR 3D
+                    </span>
+                </div>
+
+                <!-- Desglose Académico (14 Cerradas + 1 Abierta) -->
+                <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-6 space-y-3">
+                    <h3 class="text-base sm:text-lg font-extrabold text-emerald-300 border-b border-slate-700 pb-2">
+                        📊 Desglose Académico (5.00 pts)
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span>Preguntas Contestadas:</span><strong id="resAnsweredCount" class="text-white">0 / 15</strong></div>
+                        <div class="flex justify-between"><span>Cerradas Correctas (4.50 pts):</span><strong id="resCorrectClosed" class="text-emerald-400">0 / 14</strong></div>
+                        <div class="flex justify-between"><span>Cerradas Incorrectas:</span><strong id="resWrongClosed" class="text-rose-400">0 / 14</strong></div>
+                        <div class="flex justify-between"><span>Pregunta Abierta (0.50 pts):</span><strong id="resOpenStatus" class="text-amber-300">0 / 1</strong></div>
+                        <div class="flex justify-between"><span>Penalizaciones por Sonido/Tiempo:</span><strong class="text-emerald-400">Ninguna (Exento PIAR)</strong></div>
+                    </div>
+                </div>
+
+                <!-- Registro de Tiempos y Datos -->
+                <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-6 space-y-3">
+                    <h3 class="text-base sm:text-lg font-extrabold text-sky-300 border-b border-slate-700 pb-2">
+                        🕒 Datos del Examen
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span>Fecha:</span><strong id="resDate" class="text-white">--/--/----</strong></div>
+                        <div class="flex justify-between"><span>Hora de Inicio:</span><strong id="resStartTime" class="text-white">--:--:--</strong></div>
+                        <div class="flex justify-between"><span>Hora de Entrega:</span><strong id="resEndTime" class="text-white">--:--:--</strong></div>
+                        <div class="flex justify-between"><span>Tiempo Empleado:</span><strong id="resDuration" class="text-amber-300">00:00</strong></div>
+                        <div class="flex justify-between"><span>Docente:</span><strong class="text-white">Cristian D. Ayazo</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Código QR de Verificación Inmediata -->
+            <div class="bg-slate-950/90 border-2 border-amber-500/50 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
+                <div class="bg-white p-3.5 rounded-2xl shadow-lg shrink-0">
+                    <canvas id="qrCanvas" width="210" height="210"></canvas>
+                </div>
+                <div class="space-y-2 text-center md:text-left">
+                    <span class="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-extrabold text-xs uppercase">
+                        📱 Verificación Instantánea Docente
+                    </span>
+                    <h3 class="text-xl font-extrabold text-white">Código QR Oficial de la Evaluación Adaptada</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Presenta este código QR al docente <strong>Cristian David Ayazo</strong> para registrar de inmediato tu calificación, el detalle de las 14 preguntas cerradas y la validación de tu pregunta abierta. También puedes descargar el <strong>Reporte PDF Detallado</strong> con todas tus respuestas.
+                    </p>
+                    <div class="pt-3 flex flex-wrap justify-center md:justify-start gap-3">
+                        <button onclick="generateDetailedPDF()" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#c89d28] to-amber-500 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-extrabold text-sm sm:text-base shadow-xl transition flex items-center gap-2">
+                            <span>📄 Descargar Reporte Oficial en PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen Visual de Respuestas en Pantalla -->
+            <div class="space-y-4">
+                <h3 class="text-lg sm:text-xl font-extrabold text-amber-300">
+                    📋 Revisión Detallada Pregunta por Pregunta
+                </h3>
+                <div id="detailedReviewContainer" class="space-y-3">
+                    <!-- Se llena al finalizar -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         MODAL DE ZOOM / LUPA DE ALTA RESOLUCIÓN 3D
+         ========================================== -->
+    <div id="zoomModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6">
+        <div class="w-full max-w-6xl bg-slate-900 border-2 border-amber-400 rounded-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-950 border-b border-slate-700">
+                <span id="zoomModalTitle" class="text-sm sm:text-base font-extrabold text-amber-300">
+                    🔍 Visor de Lámina 3D en Alta Claridad
+                </span>
+                <div class="flex items-center gap-2">
+                    <button onclick="adjustZoom(-0.25)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-600">
+                        ➖ Alejar
+                    </button>
+                    <button onclick="resetZoom()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-sm border border-slate-600">
+                        100%
+                    </button>
+                    <button onclick="adjustZoom(0.25)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-600">
+                        ➕ Acercar
+                    </button>
+                    <button onclick="closeZoomModal()" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm ml-2">
+                        ✖ Cerrar
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-auto p-4 flex items-center justify-center bg-[#051020]">
+                <img id="zoomModalImg" src="" alt="Imagen 3D Ampliada" class="transition-transform duration-200 origin-center rounded-xl max-w-full max-h-[76vh] object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL DE CONFIRMACIÓN ANTES DE ENTREGAR
+         ========================================== -->
+    <div id="finishConfirmModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-amber-400 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">📋</span>
+                <h3 class="text-xl font-extrabold text-white">¿Deseas entregar tu evaluación?</h3>
+            </div>
+            <p id="finishModalSummaryText" class="text-slate-200 text-sm sm:text-base leading-relaxed"></p>
+            <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <button onclick="closeFinishConfirmModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm">
+                    ⬅ Volver a Revisar
+                </button>
+                <button onclick="confirmAndFinishExam()" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg">
+                    ✅ Sí, Entregar y Ver Calificación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL DE PANEL EXCLUSIVO DEL DOCENTE (dmar2026)
+         ========================================== -->
+    <div id="teacherModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-[#c89d28] rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-lg sm:text-xl font-extrabold text-amber-300 flex items-center gap-2">
+                    <span>🔑</span> Panel de Control Docente (PIAR 3D)
+                </h3>
+                <button onclick="closeTeacherModal()" class="text-slate-400 hover:text-white font-extrabold text-lg">✖</button>
+            </div>
+
+            <!-- Login docente -->
+            <div id="teacherLoginSection" class="space-y-3">
+                <label class="block text-sm font-bold text-slate-200">Ingresa la clave exclusiva del docente:</label>
+                <input id="teacherPasswordInput"
+                       type="password"
+                       placeholder="Clave docente..."
+                       onkeydown="if(event.key==='Enter') verifyTeacherPassword()"
+                       class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-600 text-white font-bold focus:border-amber-400 focus:outline-none">
+                <p id="teacherLoginError" class="hidden text-xs font-bold text-rose-400">⚠️ Contraseña incorrecta. Intenta nuevamente.</p>
+                <button onclick="verifyTeacherPassword()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm uppercase">
+                    Desbloquear Panel Docente
+                </button>
+            </div>
+
+            <!-- Controles desbloqueados -->
+            <div id="teacherControlsSection" class="hidden space-y-3">
+                <p class="text-xs text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/40 p-2.5 rounded-xl">
+                    ✅ Panel activo para el docente Cristian David Ayazo.
+                </p>
+
+                <button onclick="teacherActionStartDirect()" class="w-full py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm text-left flex items-center justify-between">
+                    <span>1. Ingresar / Iniciar Examen Directamente</span>
+                    <span>🚀</span>
+                </button>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-700 space-y-2">
+                    <label class="block text-xs font-bold text-amber-300">2. Saltar inmediatamente a cualquier pregunta (1 a 15):</label>
+                    <div class="flex gap-2">
+                        <select id="teacherJumpSelect" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white font-bold">
+                            <!-- Opciones 1..15 -->
+                        </select>
+                        <button onclick="teacherJumpToSelected()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs">
+                            Ir Ahora
+                        </button>
+                    </div>
+                    <button onclick="teacherJumpToOpenQuestion()" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs">
+                        ✍️ Ir Directo a la Pregunta Abierta (N° 15)
+                    </button>
+                </div>
+
+                <button onclick="toggleExtraVisualHelp()" class="w-full py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-sm text-left flex items-center justify-between">
+                    <span>3. Activar / Ocultar Recuadro de Pistas Visuales</span>
+                    <span>💡</span>
+                </button>
+
+                <button onclick="teacherForceFinish()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm text-left flex items-center justify-between">
+                    <span>4. Finalizar por Completo el Examen y Generar PDF/QR</span>
+                    <span>🏁</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST VISUAL INFORMATIVO -->
+    <div id="visualToast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 border-2 border-emerald-400 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold">
+        <span id="visualToastIcon" class="text-xl">✅</span>
+        <span id="visualToastText">Acción completada</span>
+    </div>
+
+    <!-- ==========================================
+         LÓGICA COMPLETA DEL EXAMEN Y RENDERIZADO 3D (.PNG)
+         ========================================== -->
+    <script>
+        const EXAM_CONFIG = {
+            institution: "Gimnasio Cristiano Faro de Luz",
+            teacher: "Cristian David Ayazo",
+            subject: "Ciencias de la Creación (Biología)",
+            grade: "6°",
+            title: "Sistemática, Taxonomía y Morfología Vegetal",
+            modality: "PIAR / Inclusión Visual 3D (Sin Límite de Tiempo)",
+            bannerFile: "6°_CIENCIAS DE LA CREACIÓN.png",
+            scheduleEnabled: false,
+            closedTotalPoints: 4.50,
+            openTotalPoints: 0.50
+        };
+
+        // BANCO DE 15 PREGUNTAS ADAPTADAS (14 CERRADAS + 1 ABIERTA)
+        const questions = [
+            {
+                id: 1,
+                type: "closed",
+                topic: "Sistemática y Filogenia",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta1_3d.png",
+                visualHint: "Observa en la imagen 3D las dos cajas: la caja izquierda muestra una ETIQUETA con el nombre de la planta (Taxonomía), y la caja derecha muestra el ÁRBOL DE FAMILIA evolutivo (Sistemática).",
+                context: "En biología, la <strong>Taxonomía</strong> pone nombres y ordena a los seres vivos en grupos. En cambio, la <strong>Sistemática</strong> estudia su historia evolutiva y quiénes son parientes cercanos.",
+                stem: "Según la imagen 3D, ¿cuál es la diferencia principal entre Taxonomía y Sistemática?",
+                options: [
+                    "La Taxonomía clasifica y nombra a las especies, mientras que la Sistemática estudia su parentesco e historia evolutiva.",
+                    "La Taxonomía solo estudia rocas y minerales, mientras que la Sistemática solo estudia hojas secas.",
+                    "La Sistemática prohíbe usar nombres científicos y la Taxonomía no agrupa a los seres vivos.",
+                    "Ambas hacen exactamente lo mismo y ninguna estudia el parentesco entre las especies."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 2,
+                type: "closed",
+                topic: "Sistemática y Filogenia",
+                competency: "Explicación de fenómenos",
+                externalImg: "pregunta2_3d.png",
+                visualHint: "Mira el árbol 3D: el NODO DORADO BRILLANTE donde se unen la Especie B y la Especie C indica que tienen un ancestro común muy reciente (son como hermanos).",
+                context: "En un <strong>árbol filogenético</strong>, dos especies son parientes más cercanos cuando sus ramas salen de un mismo <strong>nodo o punto de unión</strong> reciente.",
+                stem: "Observando el árbol evolutivo 3D, ¿cuáles son las dos especies que tienen un parentesco más cercano entre sí?",
+                options: [
+                    "La Especie A y la Especie C, porque están en los extremos opuestos del dibujo.",
+                    "La Especie B y la Especie C, porque comparten el nodo dorado más cercano y reciente.",
+                    "La Especie A y la Raíz antigua, porque no tienen ramas en común.",
+                    "Ninguna especie tiene relación con otra dentro del árbol evolutivo."
+                ],
+                correctIndex: 1
+            },
+            {
+                id: 3,
+                type: "closed",
+                topic: "Sistemática y Filogenia",
+                competency: "Indagación",
+                externalImg: "pregunta3_3d.png",
+                visualHint: "Compara en la lámina 3D las Semillas Desnudas (Pino en cono abierto) con las Semillas Protegidas dentro de un Fruto 3D (Manzano y Rosal).",
+                context: "El <strong>Manzano</strong> y el <strong>Rosal</strong> producen flores y guardan sus semillas dentro de un <strong>fruto</strong>. En cambio, el <strong>Pino</strong> tiene semillas desnudas en conos de madera.",
+                stem: "¿Por qué la sistemática agrupa al Manzano y al Rosal como parientes más cercanos entre sí que con el Pino?",
+                options: [
+                    "Porque el Manzano y el Rosal comparten la característica evolutiva de tener flores y semillas dentro de un fruto.",
+                    "Porque el Pino no realiza fotosíntesis ni tiene raíces en el suelo.",
+                    "Porque todas las plantas con frutos viven únicamente debajo del agua.",
+                    "Porque el tamaño del tronco es la única característica que miran los biólogos."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 4,
+                type: "closed",
+                topic: "Sistemática y Filogenia",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta4_3d.png",
+                visualHint: "Observa la pirámide 3D de 8 escalones: arriba está el grupo más grande (DOMINIO) y abajo en la punta está el grupo más específico (ESPECIE).",
+                context: "Las <strong>categorías taxonómicas</strong> ordenan a los seres vivos desde el grupo más grande y general hasta el grupo más pequeño y único.",
+                stem: "Mirando los escalones 3D de mayor a menor amplitud, ¿cuál es el orden correcto de las categorías taxonómicas?",
+                options: [
+                    "Especie ➔ Género ➔ Familia ➔ Orden ➔ Clase ➔ Filo ➔ Reino ➔ Dominio.",
+                    "Dominio ➔ Reino ➔ Filo (División) ➔ Clase ➔ Orden ➔ Familia ➔ Género ➔ Especie.",
+                    "Reino ➔ Especie ➔ Dominio ➔ Familia ➔ Clase ➔ Género ➔ Orden ➔ Filo.",
+                    "Familia ➔ Género ➔ Dominio ➔ Reino ➔ Especie ➔ Clase ➔ Orden ➔ Filo."
+                ],
+                correctIndex: 1
+            },
+            {
+                id: 5,
+                type: "closed",
+                topic: "Categorías y Claves",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta5_3d.png",
+                visualHint: "Fíjate en la tarjeta 3D del café: la primera palabra (Coffea) empieza con MAYÚSCULA y es el Género; la segunda palabra (arabica) va en minúscula.",
+                context: "Carlos Linneo creó el <strong>sistema binomial</strong> para nombrar a cada especie con dos palabras en cursiva: primero el <strong>Género</strong> y luego el epíteto específico.",
+                stem: "Según la regla de la etiqueta 3D, ¿cómo se escribe correctamente el nombre científico de la planta de café?",
+                options: [
+                    "coffea Arabica (la primera en minúscula y la segunda en mayúscula).",
+                    "COFFEA ARABICA (ambas palabras en mayúscula sostenida y sin cursiva).",
+                    "Coffea arabica (la primera letra en mayúscula, la segunda palabra en minúscula y en cursiva).",
+                    "Arabica (usando solamente una palabra en letra normal)."
+                ],
+                correctIndex: 2
+            },
+            {
+                id: 6,
+                type: "closed",
+                topic: "Categorías y Claves",
+                competency: "Explicación de fenómenos",
+                externalImg: "pregunta6_3d.png",
+                visualHint: "Observa las tres macetas 3D: las dos primeras comparten la palabra inicial 'Solanum' (mismo Género). La tercera empieza con 'Capsicum'.",
+                context: "En un vivero hay tres plantas: la papa (<em>Solanum tuberosum</em>), el tomate (<em>Solanum lycopersicum</em>) y el ají (<em>Capsicum annuum</em>).",
+                stem: "Al comparar la primera palabra de sus nombres científicos en la imagen 3D, ¿qué podemos concluir correctamente?",
+                options: [
+                    "La papa y el tomate pertenecen al mismo Género (Solanum), por eso son más cercanos entre sí que con el ají.",
+                    "Las tres plantas pertenecen exactamente a la misma especie porque terminan parecido.",
+                    "El tomate y el ají tienen el mismo género porque producen frutos rojos.",
+                    "Ninguna de las tres plantas pertenece al reino de las plantas."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 7,
+                type: "closed",
+                topic: "Categorías y Claves",
+                competency: "Indagación",
+                externalImg: "pregunta7_3d.png",
+                visualHint: "Sigue el camino iluminado en verde en la clave 3D: 1b (Hoja simple) ➔ 2a (Borde liso entero) = MAGNOLIO.",
+                context: "Una <strong>clave dicotómica</strong> nos da dos caminos en cada paso para descubrir el nombre de una planta observando sus hojas.",
+                stem: "Si encuentras una planta con HOJA SIMPLE (1b) y BORDE LISO ENTERO (2a), ¿a qué planta te lleva el camino verde del diagrama 3D?",
+                options: [
+                    "Al Helecho, porque no tiene semillas.",
+                    "Al Roble, porque tiene borde con dientes.",
+                    "Al Magnolio, siguiendo los pasos 1b y 2a de la clave visual.",
+                    "Al Trébol, porque tiene hoja dividida en partes."
+                ],
+                correctIndex: 2
+            },
+            {
+                id: 8,
+                type: "closed",
+                topic: "Categorías y Claves",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta8_3d.png",
+                visualHint: "Mira en la imagen 3D cómo la caja grande 'FAMILIA' guarda adentro varias cajas medianas llamadas 'GÉNERO'.",
+                context: "En la clasificación biológica, una categoría grande agrupa a varias categorías más pequeñas que están debajo de ella.",
+                stem: "Si dos plantas distintas pertenecen al mismo GÉNERO (caja mediana en la imagen 3D), ¿qué comparten obligatoriamente?",
+                options: [
+                    "Comparten también la misma Familia, Orden, Clase, División y Reino.",
+                    "Tienen exactamente el mismo nombre de especie aunque sean plantas diferentes.",
+                    "Pertenecen a Familias y Reinos totalmente diferentes.",
+                    "No comparten ninguna otra categoría superior en la pirámide."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 9,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta9_3d.png",
+                visualHint: "Observa los 3 rótulos de la hoja 3D: 1) LIMBO (lámina verde ancha), 2) PECÍOLO (tallito que sostiene la hoja) y 3) VAINA (base que abraza al tallo).",
+                context: "La hoja es el órgano de la planta que capta la luz del sol. Tiene tres partes principales bien diferenciadas en el modelo 3D.",
+                stem: "¿Cómo se llama la parte ancha y plana de color verde (número 1 en la imagen 3D) que recibe la luz solar para hacer la fotosíntesis?",
+                options: [
+                    "Raíz principal.",
+                    "Limbo (o lámina foliar).",
+                    "Semilla interna.",
+                    "Corteza leñosa."
+                ],
+                correctIndex: 1
+            },
+            {
+                id: 10,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Explicación de fenómenos",
+                externalImg: "pregunta10_3d.png",
+                visualHint: "Mira el zoom circular 3D de la hoja: el HAZ (arriba) brilla al sol, y el ENVÉS (abajo) tiene pequeños poros verdes llamados ESTOMAS para respirar.",
+                context: "La hoja tiene dos caras: el <strong>haz</strong> (cara superior que mira al sol) y el <strong>envés</strong> (cara inferior en sombra donde abundan los <strong>estomas</strong>).",
+                stem: "¿Por qué la mayoría de los estomas (poros que abren y cierran) están en el ENVÉS de la hoja como muestra el modelo 3D?",
+                options: [
+                    "Para realizar el intercambio de gases evitando perder demasiada agua por el calor directo del sol.",
+                    "Porque el envés recibe más rayos solares que la parte superior de la hoja.",
+                    "Para impedir que la planta absorba dióxido de carbono del aire.",
+                    "Porque en el envés se guardan las semillas y los frutos de la planta."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 11,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Indagación",
+                externalImg: "pregunta11_3d.png",
+                visualHint: "Compara en la lámina 3D: a la izquierda hay UNA sola lámina continua (Hoja Simple); a la derecha la lámina se divide en hojitas llamadas FOLÍOLOS (Hoja Compuesta).",
+                context: "Una <strong>hoja simple</strong> tiene un limbo entero de una sola pieza. En cambio, una <strong>hoja compuesta</strong> tiene su limbo dividido en varias hojitas llamadas <strong>folíolos</strong>.",
+                stem: "Observando las dos hojas del modelo 3D, ¿cuál es la característica que identifica a la Hoja Compuesta (Planta B)?",
+                options: [
+                    "No tiene color verde ni realiza fotosíntesis durante el día.",
+                    "Su limbo está dividido en varias hojitas pequeñas llamadas folíolos sobre un eje común.",
+                    "Tiene una sola lámina entera pegada directamente a la raíz subterránea.",
+                    "Es un tallo seco que nunca produce nervaduras."
+                ],
+                correctIndex: 1
+            },
+            {
+                id: 12,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Uso comprensivo del conocimiento científico",
+                externalImg: "pregunta12_3d.png",
+                visualHint: "Observa las líneas brillantes de las 3 hojas 3D: PARALELINERVIA (líneas rectas paralelas como el maíz), PENNINERVIA (como pluma) y PALMATINERVIA (como dedos de la mano).",
+                context: "Las <strong>nervaduras</strong> son los conductos o 'venitas' que llevan agua y nutrientes por toda la hoja.",
+                stem: "En la hoja de maíz (primera hoja de la imagen 3D), las nervaduras van de punta a punta sin cruzarse. ¿Cómo se llama este tipo de nervadura?",
+                options: [
+                    "Nervadura Paralelinervia (líneas paralelas a lo largo de la hoja).",
+                    "Nervadura Espiralada sin vasos conductores.",
+                    "Nervadura Subterránea de la raíz.",
+                    "Nervadura Floral exclusiva de los pétalos."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 13,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Indagación",
+                externalImg: "pregunta13_3d.png",
+                visualHint: "Mira el borde o contorno de las 3 hojas 3D: ENTERO (borde liso), ASERRADO (dientes en punta como un serrucho) y LOBULADO (ondas redondeadas).",
+                context: "Los botánicos observan el <strong>borde o margen del limbo</strong> para identificar rápidamente distintas especies de plantas en el campo.",
+                stem: "Si tocas la hoja del centro en la lámina 3D y notas que su borde tiene pequeños dientes inclinados como un serrucho, ¿qué tipo de borde tiene?",
+                options: [
+                    "Borde Entero o completamente liso.",
+                    "Borde Aserrado (con dientecitos seguidos en el contorno).",
+                    "Borde Líquido sin forma definida.",
+                    "Borde Cilíndrico subterráneo."
+                ],
+                correctIndex: 1
+            },
+            {
+                id: 14,
+                type: "closed",
+                topic: "Morfología de las Hojas",
+                competency: "Explicación de fenómenos",
+                externalImg: "pregunta14_3d.png",
+                visualHint: "Observa en el modelo 3D dos plantas especiales: en la de la izquierda la hoja NO tiene pecíolo (Hoja SÉSIL o sentada); en la de la derecha el pecíolo gira siguiendo al sol.",
+                context: "El <strong>pecíolo</strong> une el limbo con el tallo y orienta la hoja hacia la luz. Sin embargo, algunas hojas nacen pegadas directamente al tallo sin tener pecíolo.",
+                stem: "Según la imagen 3D, ¿cómo se llama la hoja que NO tiene pecíolo y su limbo se une directamente al tallo?",
+                options: [
+                    "Hoja Sésil (o sentada).",
+                    "Hoja Compuesta de diez raíces.",
+                    "Hoja Artificial sin células.",
+                    "Hoja Carnívora de tallo flotante."
+                ],
+                correctIndex: 0
+            },
+            {
+                id: 15,
+                type: "open",
+                topic: "Morfología y Clasificación Foliares",
+                competency: "Explicación de fenómenos",
+                externalImg: "pregunta15_3d.png",
+                visualHint: "Observa la lámina 3D final: a la izquierda ves las 3 partes de la hoja (LIMBO, PECÍOLO y VAINA) y a la derecha la comparación entre HOJA SIMPLE y HOJA COMPUESTA (con folíolos).",
+                context: "En el laboratorio de Ciencias de 6° observas el modelo 3D comparativo de las hojas de las plantas creadas por Dios.",
+                stem: "Con ayuda de la imagen 3D y del banco de palabras, escribe brevemente: ¿Cuáles son las partes principales de una hoja y en qué se diferencia una hoja simple de una hoja compuesta?",
+                wordBank: [
+                    "El limbo es la lámina verde",
+                    "el pecíolo une la hoja al tallo",
+                    "la vaina abraza el tallo",
+                    "la hoja simple tiene una sola lámina",
+                    "la hoja compuesta se divide en folíolos",
+                    "realizan la fotosíntesis"
+                ]
+            }
+        ];
+
+        // ESTADO DE LA APLICACIÓN
+        let studentName = "";
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let openAnswerText = "";
+        let examStarted = false;
+        let examFinished = false;
+        let startTimeDate = null;
+        let endTimeDate = null;
+        let elapsedSeconds = 0;
+        let elapsedTimerInterval = null;
+        let showVisualHints = true;
+        let currentZoomScale = 1;
+        const generated3DCache = {};
+
+        // INICIALIZACIÓN AL CARGAR LA PÁGINA
+        window.addEventListener("DOMContentLoaded", () => {
+            startLiveClock();
+            populateTeacherJumpSelect();
+            buildWordBankChips();
+            // Pre-generar banner oficial por si el archivo local no se encuentra
+            ensureBannerImages();
+        });
+
+        // RELOJ EN VIVO INFORMATIVO
+        function startLiveClock() {
+            const updateClock = () => {
+                const now = new Date();
+                const clockEl = document.getElementById("liveClockDisplay");
+                if (clockEl) {
+                    clockEl.textContent = now.toLocaleTimeString("es-CO", { hour12: true });
+                }
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // GENERADOR AUTOMÁTICO DE BANNER OFICIAL DE RESPALDO (.JPEG / .PNG)
+        function generateOfficialBannerDataURL() {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1200;
+            canvas.height = 250;
+            const ctx = canvas.getContext("2d");
+
+            // Fondo institucional azul marino profundo a dorado/esmeralda
+            const grad = ctx.createLinearGradient(0, 0, 1200, 250);
+            grad.addColorStop(0, "#071833");
+            grad.addColorStop(0.55, "#133463");
+            grad.addColorStop(1, "#0a284e");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1200, 250);
+
+            // Franja dorada superior e inferior
+            ctx.fillStyle = "#c89d28";
+            ctx.fillRect(0, 0, 1200, 10);
+            ctx.fillRect(0, 240, 1200, 10);
+
+            // Esfera 3D decorativa izquierda (Escudo / Faro de Luz)
+            const radGrad = ctx.createRadialGradient(115, 115, 15, 125, 125, 85);
+            radGrad.addColorStop(0, "#fef08a");
+            radGrad.addColorStop(0.5, "#c89d28");
+            radGrad.addColorStop(1, "#713f12");
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(125, 125, 80, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#081b38";
+            ctx.font = "900 38px 'Plus Jakarta Sans', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("6°", 125, 138);
+
+            // Textos institucionales
+            ctx.textAlign = "left";
+            ctx.fillStyle = "#fbbf24";
+            ctx.font = "800 24px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText("GIMNASIO CRISTIANO FARO DE LUZ • MODALIDAD ADAPTADA VISUAL 3D (PIAR)", 235, 68);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "900 42px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText("6° CIENCIAS DE LA CREACIÓN", 235, 125);
+
+            ctx.fillStyle = "#34d399";
+            ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText("Sistemática, Taxonomía y Morfología Vegetal • Docente: Cristian David Ayazo", 235, 172);
+
+            ctx.fillStyle = "#e2e8f0";
+            ctx.font = "600 18px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillText("Apoyo Visual Tridimensional • Sin límite de tiempo por pregunta • Navegación Libre", 235, 210);
+
+            return canvas.toDataURL("image/jpeg", 0.95);
+        }
+
+        function handleBannerError(imgEl) {
+            imgEl.onerror = null;
+            imgEl.src = generateOfficialBannerDataURL();
+        }
+
+        function ensureBannerImages() {
+            const imgs = [document.getElementById("headerBannerImg"), document.getElementById("resultsBannerImg")];
+            imgs.forEach(img => {
+                if (img && img.complete && img.naturalWidth === 0) {
+                    handleBannerError(img);
+                }
+            });
+        }
+
+        // VALIDACIÓN AMIGABLE DEL NOMBRE DEL ESTUDIANTE
+        function validateStudentName() {
+            const input = document.getElementById("studentNameInput");
+            const btn = document.getElementById("startExamBtn");
+            const msg = document.getElementById("nameValidationMsg");
+            const val = input.value.trim();
+            const words = val.split(/\s+/).filter(w => w.length >= 2);
+
+            if (words.length >= 2) {
+                btn.disabled = false;
+                btn.className = "w-full py-4 rounded-xl font-extrabold text-base sm:text-lg uppercase tracking-wider transition shadow-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 cursor-pointer";
+                msg.innerHTML = `<span class="text-emerald-400">✅ ¡Nombre completo listo! Haz clic en el botón verde para comenzar a tu propio ritmo.</span>`;
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full py-4 rounded-xl font-extrabold text-base sm:text-lg uppercase tracking-wider transition shadow-xl bg-slate-700 text-slate-400 cursor-not-allowed";
+                msg.innerHTML = `<span>ℹ️</span> Escribe al menos tu primer nombre y primer apellido para habilitar el botón de inicio.`;
+            }
+        }
+
+        // INICIAR EXAMEN
+        function startExam(fromTeacher = false) {
+            const input = document.getElementById("studentNameInput");
+            if (input.value.trim().length >= 3) {
+                studentName = input.value.trim();
+            } else if (fromTeacher && !studentName) {
+                studentName = "Estudiante Inclusión 6° (Acceso Docente)";
+            } else {
+                return;
+            }
+
+            examStarted = true;
+            startTimeDate = new Date();
+
+            document.getElementById("activeStudentName").textContent = studentName;
+            document.getElementById("studentTopBar").classList.remove("hidden");
+            document.getElementById("welcomeScreen").classList.add("hidden");
+            document.getElementById("resultsScreen").classList.add("hidden");
+            document.getElementById("examScreen").classList.remove("hidden");
+
+            if (elapsedTimerInterval) clearInterval(elapsedTimerInterval);
+            elapsedTimerInterval = setInterval(() => {
+                if (!examFinished) {
+                    elapsedSeconds++;
+                    const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
+                    const secs = String(elapsedSeconds % 60).padStart(2, "0");
+                    document.getElementById("elapsedTimeDisplay").textContent = `${mins}:${secs}`;
+                }
+            }, 1000);
+
+            renderNavigationGrid();
+            loadQuestion(0);
+            showToast("🌿 Evaluación iniciada. Avanza a tu propio ritmo.", "🚀");
+        }
+
+        // MAPA DE NAVEGACIÓN LIBRE (1 A 15)
+        function renderNavigationGrid() {
+            const grid = document.getElementById("questionNavGrid");
+            grid.innerHTML = "";
+
+            questions.forEach((q, idx) => {
+                const isCurrent = idx === currentQuestionIndex;
+                const isAnswered = q.type === "closed"
+                    ? userAnswers[idx] !== null
+                    : isOpenAnswerValid(openAnswerText);
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => loadQuestion(idx);
+
+                let colorClass = "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600";
+                if (isCurrent) {
+                    colorClass = "bg-amber-400 text-slate-950 border-white ring-2 ring-amber-300 font-black scale-105";
+                } else if (isAnswered) {
+                    colorClass = "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-300 font-extrabold";
+                }
+
+                btn.className = `py-2 px-1 rounded-xl border text-xs sm:text-sm font-bold transition flex flex-col items-center justify-center ${colorClass}`;
+                btn.innerHTML = `
+                    <span>${idx + 1}</span>
+                    <span class="text-[10px] opacity-85">${q.type === "open" ? "✍️" : (isAnswered ? "✓" : "•")}</span>
+                `;
+                grid.appendChild(btn);
+            });
+
+            // Actualizar contador superior de respondidas
+            let answeredTotal = 0;
+            questions.forEach((q, i) => {
+                if (q.type === "closed" && userAnswers[i] !== null) answeredTotal++;
+                if (q.type === "open" && isOpenAnswerValid(openAnswerText)) answeredTotal++;
+            });
+            document.getElementById("answeredCountBadge").textContent = answeredTotal;
+        }
+
+        // CARGAR CUALQUIER PREGUNTA (0 A 14)
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const q = questions[index];
+
+            document.getElementById("qNumberBadge").textContent = `Pregunta ${index + 1} de ${questions.length}`;
+            document.getElementById("qTypeBadge").textContent = q.type === "closed"
+                ? "Selección Múltiple (Valor: 0.32 pts)"
+                : "Pregunta Abierta Guiada (Valor: 0.50 pts)";
+            document.getElementById("qTopicBadge").textContent = `🌿 ${q.topic}`;
+            document.getElementById("qCompetencyBadge").textContent = `🔬 ${q.competency}`;
+            document.getElementById("visualHintText").innerHTML = q.visualHint;
+            document.getElementById("questionContextText").innerHTML = q.context;
+            document.getElementById("questionStemText").innerHTML = q.stem;
+
+            // Cargar imagen 3D en formato .PNG de alta resolución (o archivo externo si existe)
+            const imgEl = document.getElementById("question3DImage");
+            const fallbackDataUrl = getOrCreate3DImage(index);
+            imgEl.onerror = () => {
+                imgEl.onerror = null;
+                imgEl.src = fallbackDataUrl;
+            };
+            imgEl.src = fallbackDataUrl;
+
+            // Mostrar opciones cerradas o pregunta abierta
+            const closedContainer = document.getElementById("closedOptionsContainer");
+            const openContainer = document.getElementById("openQuestionContainer");
+
+            if (q.type === "closed") {
+                closedContainer.classList.remove("hidden");
+                openContainer.classList.add("hidden");
+                renderClosedOptions(q, index);
+            } else {
+                closedContainer.classList.add("hidden");
+                openContainer.classList.remove("hidden");
+                document.getElementById("openAnswerTextarea").value = openAnswerText;
+                handleOpenAnswerInput();
+            }
+
+            // Estado de botones Anterior y Siguiente
+            const prevBtn = document.getElementById("prevQuestionBtn");
+            const nextBtn = document.getElementById("nextQuestionBtn");
+            prevBtn.disabled = index === 0;
+            prevBtn.classList.toggle("opacity-40", index === 0);
+            prevBtn.classList.toggle("cursor-not-allowed", index === 0);
+
+            if (index === questions.length - 1) {
+                nextBtn.classList.add("hidden");
+            } else {
+                nextBtn.classList.remove("hidden");
+            }
+
+            renderNavigationGrid();
+        }
+
+        // RENDERIZAR OPCIONES A, B, C, D CON ALTO CONTRASTE VISUAL
+        function renderClosedOptions(q, qIdx) {
+            const container = document.getElementById("closedOptionsContainer");
+            container.innerHTML = "";
+            const letters = ["A", "B", "C", "D"];
+
+            q.options.forEach((optText, optIdx) => {
+                const isSelected = userAnswers[qIdx] === optIdx;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.onclick = () => selectClosedOption(qIdx, optIdx);
+                btn.className = `option-btn w-full text-left p-4 sm:p-5 rounded-2xl border-2 flex items-center gap-4 ${
+                    isSelected
+                        ? "selected border-emerald-400 text-white"
+                        : "bg-slate-900/90 hover:bg-slate-800/90 border-slate-700 text-slate-100"
+                }`;
+
+                btn.innerHTML = `
+                    <span class="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-lg shrink-0 ${
+                        isSelected
+                            ? "bg-emerald-400 text-slate-950 shadow-md"
+                            : "bg-slate-800 text-amber-300 border border-slate-600"
+                    }">
+                        ${letters[optIdx]}
+                    </span>
+                    <span class="flex-1 text-base sm:text-lg font-semibold leading-snug">${optText}</span>
+                    <span class="text-xl shrink-0">${isSelected ? "✅" : "⚪"}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectClosedOption(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+            renderClosedOptions(questions[qIdx], qIdx);
+            renderNavigationGrid();
+            const letters = ["A", "B", "C", "D"];
+            showToast(`Opción ${letters[optIdx]} guardada en la pregunta ${qIdx + 1}`, "✅");
+        }
+
+        // BANCO DE PALABRAS INTERACTIVO Y VALIDACIÓN ACCESIBLE DE LA PREGUNTA 15
+        function buildWordBankChips() {
+            const container = document.getElementById("wordBankContainer");
+            const openQ = questions[14];
+            if (!container || !openQ.wordBank) return;
+
+            container.innerHTML = "";
+            openQ.wordBank.forEach(phrase => {
+                const chip = document.createElement("button");
+                chip.type = "button";
+                chip.onclick = () => insertPhraseIntoOpenAnswer(phrase);
+                chip.className = "px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/60 text-emerald-200 font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-sm";
+                chip.innerHTML = `<span>➕</span> <span>${phrase}</span>`;
+                container.appendChild(chip);
+            });
+        }
+
+        function insertPhraseIntoOpenAnswer(phrase) {
+            const textarea = document.getElementById("openAnswerTextarea");
+            let current = textarea.value.trim();
+            if (current.length > 0 && !current.endsWith(".") && !current.endsWith(",")) {
+                current += ", ";
+            } else if (current.length > 0) {
+                current += " ";
+            }
+            textarea.value = current + phrase;
+            handleOpenAnswerInput();
+            textarea.focus();
+        }
+
+        function countValidWords(text) {
+            if (!text || !text.trim()) return 0;
+            return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        }
+
+        function isOpenAnswerValid(text) {
+            return countValidWords(text) >= 10;
+        }
+
+        function handleOpenAnswerInput() {
+            const textarea = document.getElementById("openAnswerTextarea");
+            openAnswerText = textarea.value;
+            const words = countValidWords(openAnswerText);
+            const badge = document.getElementById("openStatusBadge");
+
+            if (words >= 10) {
+                badge.className = "px-3.5 py-1.5 rounded-lg bg-emerald-500/25 border border-emerald-400 text-emerald-300 font-extrabold text-xs sm:text-sm";
+                badge.innerHTML = `✅ Respuesta lista (${words} palabras escritas)`;
+            } else {
+                badge.className = "px-3.5 py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/60 text-amber-300 font-extrabold text-xs sm:text-sm";
+                badge.innerHTML = `⏳ Palabras escritas: ${words} / 10 mínimo`;
+            }
+            renderNavigationGrid();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                loadQuestion(currentQuestionIndex - 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        }
+
+        function toggleExtraVisualHelp() {
+            showVisualHints = !showVisualHints;
+            const box = document.getElementById("visualHintBox");
+            const topBtn = document.getElementById("btnToggleHelpTop");
+            if (showVisualHints) {
+                box.classList.remove("hidden");
+                topBtn.textContent = "💡 Pistas Visuales: ACTIVAS";
+                showToast("Pistas visuales activadas en pantalla", "💡");
+            } else {
+                box.classList.add("hidden");
+                topBtn.textContent = "💡 Pistas Visuales: OCULTAS";
+                showToast("Pistas visuales ocultadas", "👁️");
+            }
+        }
+
+        // VISOR DE ZOOM A PANTALLA COMPLETA
+        function openZoomModal() {
+            const currentImg = document.getElementById("question3DImage");
+            const zoomImg = document.getElementById("zoomModalImg");
+            const title = document.getElementById("zoomModalTitle");
+            zoomImg.src = currentImg.src;
+            title.textContent = `🔍 Lámina 3D Ampliada • Pregunta ${currentQuestionIndex + 1}: ${questions[currentQuestionIndex].topic}`;
+            currentZoomScale = 1;
+            zoomImg.style.transform = `scale(1)`;
+            document.getElementById("zoomModal").classList.remove("hidden");
+        }
+
+        function closeZoomModal() {
+            document.getElementById("zoomModal").classList.add("hidden");
+        }
+
+        function adjustZoom(delta) {
+            currentZoomScale = Math.min(2.5, Math.max(0.6, currentZoomScale + delta));
+            document.getElementById("zoomModalImg").style.transform = `scale(${currentZoomScale})`;
+        }
+
+        function resetZoom() {
+            currentZoomScale = 1;
+            document.getElementById("zoomModalImg").style.transform = `scale(1)`;
+        }
+
+        // =========================================================================
+        // MOTOR GENERADOR DE LÁMINAS CIENTÍFICAS 3D EN FORMATO .PNG (1200 x 750 px)
+        // =========================================================================
+        function getOrCreate3DImage(qIdx) {
+            if (generated3DCache[qIdx]) return generated3DCache[qIdx];
+            const dataUrl = generate3DQuestionImage(qIdx);
+            generated3DCache[qIdx] = dataUrl;
+            return dataUrl;
+        }
+
+        function draw3DSphere(ctx, x, y, r, lightColor, midColor, darkColor) {
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.55)";
+            ctx.shadowBlur = 18;
+            ctx.shadowOffsetY = 8;
+            const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+            g.addColorStop(0, lightColor);
+            g.addColorStop(0.55, midColor);
+            g.addColorStop(1, darkColor);
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function draw3DBox(ctx, x, y, w, h, topColor, bottomColor, borderColor = "#fbbf24") {
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.6)";
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            const g = ctx.createLinearGradient(x, y, x, y + h);
+            g.addColorStop(0, topColor);
+            g.addColorStop(1, bottomColor);
+            ctx.fillStyle = g;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, 20);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function draw3DLeaf(ctx, cx, cy, rx, ry, angle, lightCol = "#4ade80", darkCol = "#065f46") {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            ctx.shadowColor = "rgba(0,0,0,0.55)";
+            ctx.shadowBlur = 18;
+            ctx.shadowOffsetY = 9;
+
+            const g = ctx.createRadialGradient(-rx * 0.25, -ry * 0.25, 10, 0, 0, Math.max(rx, ry));
+            g.addColorStop(0, lightCol);
+            g.addColorStop(0.65, "#10b981");
+            g.addColorStop(1, darkCol);
+            ctx.fillStyle = g;
+            ctx.strokeStyle = "#a7f3d0";
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(-rx, 0);
+            ctx.quadraticCurveTo(0, -ry * 1.25, rx, 0);
+            ctx.quadraticCurveTo(0, ry * 1.25, -rx, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Nervadura central brillante
+            ctx.strokeStyle = "#fef08a";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-rx * 0.9, 0);
+            ctx.lineTo(rx * 0.88, 0);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawLabelBadge(ctx, x, y, text, bg = "#0f172a", border = "#fbbf24", textCol = "#ffffff") {
+            ctx.save();
+            ctx.font = "800 23px 'Plus Jakarta Sans', sans-serif";
+            const padX = 20;
+            const metrics = ctx.measureText(text);
+            const w = metrics.width + padX * 2;
+            const h = 48;
+            ctx.fillStyle = bg;
+            ctx.strokeStyle = border;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(x - w / 2, y - h / 2, w, h, 14);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = textCol;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        function generate3DQuestionImage(qIdx) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1200;
+            canvas.height = 750;
+            const ctx = canvas.getContext("2d");
+
+            // Fondo radial 3D de estudio científico
+            const bgGrad = ctx.createRadialGradient(600, 360, 80, 600, 375, 760);
+            bgGrad.addColorStop(0, "#173768");
+            bgGrad.addColorStop(0.6, "#0b1e3b");
+            bgGrad.addColorStop(1, "#040c1a");
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, 1200, 750);
+
+            // Cuadrícula sutil de perspectiva
+            ctx.strokeStyle = "rgba(148, 163, 184, 0.1)";
+            ctx.lineWidth = 1.5;
+            for (let x = 60; x < 1200; x += 60) {
+                ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x, 670); ctx.stroke();
+            }
+            for (let y = 80; y < 680; y += 60) {
+                ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(1160, y); ctx.stroke();
+            }
+
+            // Cabecera superior de la lámina 3D
+            ctx.fillStyle = "rgba(8, 27, 56, 0.92)";
+            ctx.fillRect(0, 0, 1200, 76);
+            ctx.fillStyle = "#c89d28";
+            ctx.fillRect(0, 73, 1200, 4);
+
+            ctx.fillStyle = "#fbbf24";
+            ctx.font = "900 25px 'Plus Jakarta Sans', sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(`LÁMINA VISUAL 3D #${qIdx + 1} • ${questions[qIdx].topic.toUpperCase()}`, 35, 47);
+
+            ctx.fillStyle = "#34d399";
+            ctx.font = "800 21px 'Plus Jakarta Sans', sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText("GRADO 6° • APOYO VISUAL PIAR", 1165, 47);
+
+            // Ilustración 3D específica según la pregunta
+            switch (qIdx) {
+                case 0: { // Q1: Taxonomía vs Sistemática
+                    draw3DBox(ctx, 80, 140, 470, 470, "#1e3a8a", "#0f172a", "#38bdf8");
+                    drawLabelBadge(ctx, 315, 195, "1. TAXONOMÍA (Clasifica y Nombra)", "#0284c7", "#e0f2fe");
+                    draw3DLeaf(ctx, 315, 340, 110, 60, -0.2);
+                    drawLabelBadge(ctx, 315, 475, "Etiqueta: Rosa gallica", "#0f172a", "#fbbf24", "#fef08a");
+                    ctx.fillStyle = "#e2e8f0";
+                    ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Ordena en grupos y da el nombre", 315, 555);
+
+                    draw3DBox(ctx, 650, 140, 470, 470, "#065f46", "#0f172a", "#34d399");
+                    drawLabelBadge(ctx, 885, 195, "2. SISTEMÁTICA (Historia Evolutiva)", "#059669", "#d1fae5");
+                    // Árbol 3D
+                    ctx.strokeStyle = "#fbbf24";
+                    ctx.lineWidth = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(885, 500); ctx.lineTo(885, 390);
+                    ctx.lineTo(775, 290);
+                    ctx.moveTo(885, 390); ctx.lineTo(995, 290);
+                    ctx.stroke();
+                    draw3DSphere(ctx, 885, 390, 24, "#fef08a", "#f59e0b", "#b45309");
+                    draw3DSphere(ctx, 775, 285, 32, "#6ee7b7", "#10b981", "#047857");
+                    draw3DSphere(ctx, 995, 285, 32, "#93c5fd", "#3b82f6", "#1d4ed8");
+                    ctx.fillStyle = "#e2e8f0";
+                    ctx.fillText("Estudia el parentesco y ancestros", 885, 555);
+                    break;
+                }
+                case 1: { // Q2: Árbol filogenético y Nodo común
+                    draw3DBox(ctx, 100, 125, 1000, 500, "#0f294d", "#071429", "#fbbf24");
+                    ctx.strokeStyle = "#94a3b8";
+                    ctx.lineWidth = 14;
+                    ctx.lineCap = "round";
+                    // Tronco y ramas
+                    ctx.beginPath();
+                    ctx.moveTo(220, 520);
+                    ctx.lineTo(420, 390);
+                    ctx.lineTo(280, 230); // A
+                    ctx.moveTo(420, 390);
+                    ctx.lineTo(740, 310); // Nodo B-C
+                    ctx.stroke();
+
+                    // Ramas hermanas B y C iluminadas
+                    ctx.strokeStyle = "#34d399";
+                    ctx.lineWidth = 14;
+                    ctx.beginPath();
+                    ctx.moveTo(740, 310); ctx.lineTo(640, 195); // B
+                    ctx.moveTo(740, 310); ctx.lineTo(880, 195); // C
+                    ctx.stroke();
+
+                    draw3DSphere(ctx, 420, 390, 26, "#cbd5e1", "#64748b", "#334155");
+                    draw3DSphere(ctx, 740, 310, 36, "#fef08a", "#f59e0b", "#b45309");
+
+                    drawLabelBadge(ctx, 280, 175, "ESPECIE A (Lejana)", "#1e293b", "#94a3b8");
+                    drawLabelBadge(ctx, 620, 145, "ESPECIE B", "#065f46", "#34d399");
+                    drawLabelBadge(ctx, 900, 145, "ESPECIE C", "#065f46", "#34d399");
+                    drawLabelBadge(ctx, 740, 415, "⭐ NODO RECIENTE (Parientes más cercanos: B y C)", "#78350f", "#fde047", "#fef08a");
+                    drawLabelBadge(ctx, 240, 565, "Raíz / Ancestro Antiguo", "#0f172a", "#64748b");
+                    break;
+                }
+                case 2: { // Q3: Pino vs Manzano y Rosal
+                    draw3DBox(ctx, 75, 140, 460, 470, "#3f2e1e", "#1c1917", "#f59e0b");
+                    drawLabelBadge(ctx, 305, 195, "PINO (Gimnosperma)", "#92400e", "#fcd34d");
+                    draw3DSphere(ctx, 305, 345, 75, "#fcd34d", "#b45309", "#451a03");
+                    drawLabelBadge(ctx, 305, 480, "Semilla DESNUDA en cono (Sin fruto)", "#1c1917", "#f59e0b");
+
+                    draw3DBox(ctx, 595, 140, 530, 470, "#064e3b", "#091e1a", "#34d399");
+                    drawLabelBadge(ctx, 860, 195, "MANZANO Y ROSAL (Parientes Cercanos)", "#047857", "#6ee7b7");
+                    draw3DSphere(ctx, 760, 345, 68, "#fca5a5", "#ef4444", "#991b1b");
+                    draw3DSphere(ctx, 960, 345, 68, "#fda4af", "#e11d48", "#881337");
+                    drawLabelBadge(ctx, 860, 480, "✅ Tienen FLORES y SEMILLAS DENTRO DE FRUTO", "#065f46", "#fde047", "#fef08a");
+                    break;
+                }
+                case 3: { // Q4: Pirámide Jerarquía Taxonómica (Dominio a Especie)
+                    const levels = [
+                        { name: "1. DOMINIO (El más grande)", w: 920, col: "#1d4ed8" },
+                        { name: "2. REINO", w: 810, col: "#2563eb" },
+                        { name: "3. FILO / DIVISIÓN", w: 700, col: "#0284c7" },
+                        { name: "4. CLASE", w: 590, col: "#0891b2" },
+                        { name: "5. ORDEN", w: 490, col: "#0d9488" },
+                        { name: "6. FAMILIA", w: 390, col: "#059669" },
+                        { name: "7. GÉNERO", w: 300, col: "#16a34a" },
+                        { name: "8. ESPECIE (El más específico)", w: 240, col: "#ca8a04" }
+                    ];
+                    levels.forEach((lv, i) => {
+                        const y = 110 + i * 66;
+                        const x = 600 - lv.w / 2;
+                        draw3DBox(ctx, x, y, lv.w, 54, lv.col, "#0f172a", "#fde047");
+                        ctx.fillStyle = "#ffffff";
+                        ctx.font = "800 22px 'Plus Jakarta Sans', sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.fillText(lv.name, 600, y + 34);
+                    });
+                    break;
+                }
+                case 4: { // Q5: Nomenclatura Binomial (Coffea arabica)
+                    draw3DBox(ctx, 130, 150, 940, 450, "#0f2942", "#081424", "#fbbf24");
+                    draw3DSphere(ctx, 290, 360, 85, "#fca5a5", "#dc2626", "#7f1d1d");
+                    draw3DLeaf(ctx, 290, 240, 75, 38, -0.35);
+
+                    drawLabelBadge(ctx, 690, 230, "REGLA DEL NOMBRE CIENTÍFICO (2 PALABRAS)", "#1e3a8a", "#38bdf8");
+
+                    draw3DBox(ctx, 450, 290, 230, 120, "#065f46", "#022c22", "#34d399");
+                    ctx.fillStyle = "#fde047";
+                    ctx.font = "italic 900 42px 'Plus Jakarta Sans', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("Coffea", 565, 355);
+                    ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+                    ctx.fillStyle = "#a7f3d0";
+                    ctx.fillText("1° Género (Inicial Mayúscula)", 565, 390);
+
+                    draw3DBox(ctx, 710, 290, 250, 120, "#1e3a8a", "#0f172a", "#60a5fa");
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "italic 900 42px 'Plus Jakarta Sans', sans-serif";
+                    ctx.fillText("arabica", 835, 355);
+                    ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+                    ctx.fillStyle = "#bae6fd";
+                    ctx.fillText("2° Específico (Todo minúscula)", 835, 390);
+
+                    drawLabelBadge(ctx, 690, 495, "✅ Correcto: Coffea arabica (en letra cursiva)", "#065f46", "#fde047", "#fef08a");
+                    break;
+                }
+                case 5: { // Q6: Comparación de Género Solanum vs Capsicum
+                    draw3DBox(ctx, 60, 160, 330, 430, "#065f46", "#042f2e", "#34d399");
+                    draw3DSphere(ctx, 225, 310, 65, "#fde68a", "#d97706", "#78350f");
+                    drawLabelBadge(ctx, 225, 435, "Papa: Solanum tuberosum", "#0f172a", "#34d399");
+                    drawLabelBadge(ctx, 225, 510, "Mismo Género: SOLANUM", "#047857", "#fde047", "#fef08a");
+
+                    draw3DBox(ctx, 435, 160, 330, 430, "#065f46", "#042f2e", "#34d399");
+                    draw3DSphere(ctx, 600, 310, 65, "#fca5a5", "#ef4444", "#991b1b");
+                    drawLabelBadge(ctx, 600, 435, "Tomate: Solanum lycopersicum", "#0f172a", "#34d399");
+                    drawLabelBadge(ctx, 600, 510, "Mismo Género: SOLANUM", "#047857", "#fde047", "#fef08a");
+
+                    draw3DBox(ctx, 810, 160, 330, 430, "#3b0764", "#1e1b4b", "#c084fc");
+                    draw3DSphere(ctx, 975, 310, 65, "#fdba74", "#ea580c", "#7c2d12");
+                    drawLabelBadge(ctx, 975, 435, "Ají: Capsicum annuum", "#0f172a", "#c084fc");
+                    drawLabelBadge(ctx, 975, 510, "Otro Género: CAPSICUM", "#4c1d95", "#e9d5ff");
+                    break;
+                }
+                case 6: { // Q7: Clave dicotómica visual (Magnolio)
+                    draw3DBox(ctx, 90, 130, 1020, 500, "#0c2444", "#061224", "#38bdf8");
+                    drawLabelBadge(ctx, 600, 190, "CLAVE DICOTÓMICA VISUAL PASO A PASO", "#0284c7", "#e0f2fe");
+
+                    // Camino 1a vs 1b
+                    drawLabelBadge(ctx, 310, 300, "1a. Hoja Compuesta ➔ Trébol", "#1e293b", "#64748b");
+                    drawLabelBadge(ctx, 820, 300, "✅ 1b. HOJA SIMPLE (Ir al paso 2)", "#065f46", "#34d399");
+
+                    // Camino 2a vs 2b
+                    ctx.strokeStyle = "#34d399";
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(820, 330); ctx.lineTo(820, 420);
+                    ctx.stroke();
+
+                    drawLabelBadge(ctx, 360, 460, "2b. Borde con dientes ➔ Roble", "#1e293b", "#64748b");
+                    drawLabelBadge(ctx, 820, 460, "⭐ 2a. BORDE LISO ENTERO ➔ MAGNOLIO", "#047857", "#fde047", "#fef08a");
+                    draw3DLeaf(ctx, 820, 560, 95, 42, 0);
+                    break;
+                }
+                case 7: { // Q8: Cajas anidadas Familia > Género > Especie
+                    draw3DBox(ctx, 110, 130, 980, 500, "#1e3a8a", "#0f172a", "#60a5fa");
+                    drawLabelBadge(ctx, 600, 185, "CAJA GRANDE: MISMA FAMILIA, ORDEN, CLASE Y REINO", "#1d4ed8", "#bfdbfe");
+
+                    draw3DBox(ctx, 210, 245, 780, 330, "#065f46", "#022c22", "#34d399");
+                    drawLabelBadge(ctx, 600, 295, "CAJA MEDIANA: MISMO GÉNERO", "#059669", "#fde047", "#fef08a");
+
+                    draw3DSphere(ctx, 430, 445, 65, "#fde047", "#ca8a04", "#713f12");
+                    drawLabelBadge(ctx, 430, 535, "Especie 1", "#0f172a", "#fde047");
+
+                    draw3DSphere(ctx, 770, 445, 65, "#6ee7b7", "#10b981", "#065f46");
+                    drawLabelBadge(ctx, 770, 535, "Especie 2", "#0f172a", "#34d399");
+                    break;
+                }
+                case 8: { // Q9: Partes de la hoja (Limbo, Pecíolo, Vaina)
+                    draw3DBox(ctx, 90, 125, 1020, 510, "#08223f", "#051326", "#34d399");
+                    // Tallo vertical 3D
+                    ctx.fillStyle = "#78350f";
+                    ctx.fillRect(240, 190, 38, 410);
+                    // Vaina
+                    draw3DSphere(ctx, 265, 435, 36, "#a3e635", "#4d7c0f", "#1a2e05");
+                    // Pecíolo
+                    ctx.strokeStyle = "#84cc16";
+                    ctx.lineWidth = 18;
+                    ctx.beginPath();
+                    ctx.moveTo(275, 430);
+                    ctx.quadraticCurveTo(380, 410, 460, 360);
+                    ctx.stroke();
+                    // Limbo grande 3D
+                    draw3DLeaf(ctx, 680, 330, 220, 115, -0.1);
+
+                    drawLabelBadge(ctx, 680, 175, "1. LIMBO (Lámina verde ancha que capta el sol)", "#059669", "#fde047", "#fef08a");
+                    drawLabelBadge(ctx, 430, 510, "2. PECÍOLO (Tallito que une al limbo)", "#0284c7", "#e0f2fe");
+                    drawLabelBadge(ctx, 265, 575, "3. VAINA (Base en el tallo)", "#78350f", "#fcd34d");
+                    break;
+                }
+                case 9: { // Q10: Haz vs Envés y Estomas 3D
+                    draw3DBox(ctx, 75, 140, 480, 470, "#1e3a8a", "#0f172a", "#fbbf24");
+                    drawLabelBadge(ctx, 315, 195, "CARA SUPERIOR: HAZ (Mira al Sol ☀️)", "#b45309", "#fde047");
+                    draw3DSphere(ctx, 315, 290, 48, "#fef08a", "#f59e0b", "#d97706");
+                    draw3DLeaf(ctx, 315, 440, 150, 75, 0, "#86efac", "#15803d");
+
+                    draw3DBox(ctx, 625, 140, 500, 470, "#064e3b", "#022c22", "#34d399");
+                    drawLabelBadge(ctx, 875, 195, "CARA INFERIOR: ENVÉS (En sombra)", "#059669", "#a7f3d0");
+                    // Estoma 3D en zoom
+                    draw3DSphere(ctx, 875, 365, 95, "#34d399", "#059669", "#064e3b");
+                    ctx.fillStyle = "#022c22";
+                    ctx.beginPath();
+                    ctx.ellipse(875, 365, 22, 52, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    drawLabelBadge(ctx, 875, 520, "🔬 Poros ESTOMAS (Intercambio de gases sin secarse)", "#0f172a", "#fde047", "#fef08a");
+                    break;
+                }
+                case 10: { // Q11: Hoja Simple vs Hoja Compuesta
+                    draw3DBox(ctx, 80, 140, 480, 470, "#0f294d", "#08172e", "#38bdf8");
+                    drawLabelBadge(ctx, 320, 195, "PLANTA A: HOJA SIMPLE", "#0284c7", "#e0f2fe");
+                    draw3DLeaf(ctx, 320, 365, 165, 95, -0.1);
+                    drawLabelBadge(ctx, 320, 535, "1 sola lámina entera y continua", "#0f172a", "#38bdf8");
+
+                    draw3DBox(ctx, 640, 140, 480, 470, "#064e3b", "#03221a", "#34d399");
+                    drawLabelBadge(ctx, 880, 195, "PLANTA B: HOJA COMPUESTA", "#059669", "#fde047", "#fef08a");
+                    // Raquis central y folíolos 3D
+                    ctx.strokeStyle = "#a3e635";
+                    ctx.lineWidth = 8;
+                    ctx.beginPath(); ctx.moveTo(730, 380); ctx.lineTo(1030, 380); ctx.stroke();
+                    draw3DLeaf(ctx, 790, 320, 52, 26, -0.4);
+                    draw3DLeaf(ctx, 900, 320, 52, 26, -0.4);
+                    draw3DLeaf(ctx, 790, 440, 52, 26, 0.4);
+                    draw3DLeaf(ctx, 900, 440, 52, 26, 0.4);
+                    draw3DLeaf(ctx, 1020, 380, 55, 28, 0);
+                    drawLabelBadge(ctx, 880, 535, "✅ Dividida en hojitas llamadas FOLÍOLOS", "#0f172a", "#fde047", "#fef08a");
+                    break;
+                }
+                case 11: { // Q12: Tipos de Nervaduras (Paralelinervia, Penninervia, Palmatinervia)
+                    draw3DBox(ctx, 55, 150, 345, 460, "#065f46", "#022c22", "#fde047");
+                    drawLabelBadge(ctx, 227, 205, "1. PARALELINERVIA", "#047857", "#fde047", "#fef08a");
+                    draw3DLeaf(ctx, 227, 365, 130, 55, -Math.PI / 2);
+                    drawLabelBadge(ctx, 227, 540, "Líneas paralelas (Ej: Maíz)", "#0f172a", "#fde047");
+
+                    draw3DBox(ctx, 427, 150, 345, 460, "#0f294d", "#071529", "#38bdf8");
+                    drawLabelBadge(ctx, 600, 205, "2. PENNINERVIA", "#0284c7", "#e0f2fe");
+                    draw3DLeaf(ctx, 600, 365, 125, 70, -Math.PI / 2);
+                    drawLabelBadge(ctx, 600, 540, "Forma de pluma", "#0f172a", "#38bdf8");
+
+                    draw3DBox(ctx, 800, 150, 345, 460, "#1e1b4b", "#0f172a", "#c084fc");
+                    drawLabelBadge(ctx, 972, 205, "3. PALMATINERVIA", "#6d28d9", "#ede9fe");
+                    draw3DLeaf(ctx, 972, 365, 110, 95, 0);
+                    drawLabelBadge(ctx, 972, 540, "Como dedos de la mano", "#0f172a", "#c084fc");
+                    break;
+                }
+                case 12: { // Q13: Bordes Foliares (Entero, Aserrado, Lobulado)
+                    draw3DBox(ctx, 55, 150, 345, 460, "#0f294d", "#071529", "#38bdf8");
+                    drawLabelBadge(ctx, 227, 205, "1. BORDE ENTERO", "#0284c7", "#e0f2fe");
+                    draw3DLeaf(ctx, 227, 365, 125, 65, 0);
+                    drawLabelBadge(ctx, 227, 540, "Contorno totalmente liso", "#0f172a", "#38bdf8");
+
+                    draw3DBox(ctx, 427, 150, 345, 460, "#065f46", "#022c22", "#fde047");
+                    drawLabelBadge(ctx, 600, 205, "2. BORDE ASERRADO", "#047857", "#fde047", "#fef08a");
+                    draw3DLeaf(ctx, 600, 365, 125, 68, 0);
+                    // Dientes de sierra destacados
+                    ctx.strokeStyle = "#fde047";
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    for (let i = -90; i <= 75; i += 25) {
+                        ctx.moveTo(600 + i, 305);
+                        ctx.lineTo(600 + i + 14, 285);
+                        ctx.lineTo(600 + i + 22, 307);
+                    }
+                    ctx.stroke();
+                    drawLabelBadge(ctx, 600, 540, "🦷 Dientes como un serrucho", "#0f172a", "#fde047", "#fef08a");
+
+                    draw3DBox(ctx, 800, 150, 345, 460, "#1e1b4b", "#0f172a", "#c084fc");
+                    drawLabelBadge(ctx, 972, 205, "3. BORDE LOBULADO", "#6d28d9", "#ede9fe");
+                    draw3DLeaf(ctx, 972, 365, 120, 75, 0);
+                    drawLabelBadge(ctx, 972, 540, "Ondas redondeadas", "#0f172a", "#c084fc");
+                    break;
+                }
+                case 13: { // Q14: Hoja Sésil (Sentada) vs Hoja Peciolada
+                    draw3DBox(ctx, 80, 140, 490, 470, "#065f46", "#022c22", "#fde047");
+                    drawLabelBadge(ctx, 325, 195, "PLANTA 1: HOJA SÉSIL (Sentada)", "#047857", "#fde047", "#fef08a");
+                    ctx.fillStyle = "#78350f";
+                    ctx.fillRect(190, 240, 34, 240);
+                    draw3DLeaf(ctx, 335, 355, 125, 65, 0);
+                    drawLabelBadge(ctx, 325, 535, "✅ SIN PECÍOLO (Pegada directo al tallo)", "#0f172a", "#fde047", "#fef08a");
+
+                    draw3DBox(ctx, 630, 140, 490, 470, "#0f294d", "#071529", "#38bdf8");
+                    drawLabelBadge(ctx, 875, 195, "PLANTA 2: HOJA PECIOLADA", "#0284c7", "#e0f2fe");
+                    ctx.fillStyle = "#78350f";
+                    ctx.fillRect(700, 240, 34, 240);
+                    ctx.strokeStyle = "#84cc16";
+                    ctx.lineWidth = 14;
+                    ctx.beginPath(); ctx.moveTo(734, 360); ctx.lineTo(830, 360); ctx.stroke();
+                    draw3DLeaf(ctx, 945, 355, 115, 60, 0);
+                    drawLabelBadge(ctx, 875, 535, "Tiene tallito (pecíolo) que la sostiene", "#0f172a", "#38bdf8");
+                    break;
+                }
+                default: { // Q15: Pregunta Abierta Síntesis Visual 3D
+                    draw3DBox(ctx, 65, 135, 510, 480, "#0f294d", "#071426", "#fbbf24");
+                    drawLabelBadge(ctx, 320, 190, "A. PARTES DE LA HOJA", "#b45309", "#fef08a");
+                    ctx.fillStyle = "#78350f";
+                    ctx.fillRect(145, 250, 28, 250);
+                    draw3DSphere(ctx, 165, 420, 26, "#a3e635", "#4d7c0f", "#1a2e05");
+                    ctx.strokeStyle = "#84cc16";
+                    ctx.lineWidth = 14;
+                    ctx.beginPath(); ctx.moveTo(175, 415); ctx.lineTo(265, 370); ctx.stroke();
+                    draw3DLeaf(ctx, 395, 345, 130, 70, -0.1);
+                    drawLabelBadge(ctx, 320, 525, "Limbo + Pecíolo + Vaina", "#0f172a", "#fde047", "#fef08a");
+
+                    draw3DBox(ctx, 625, 135, 510, 480, "#064e3b", "#022c22", "#34d399");
+                    drawLabelBadge(ctx, 880, 190, "B. HOJA SIMPLE VS COMPUESTA", "#059669", "#a7f3d0");
+                    draw3DLeaf(ctx, 760, 345, 90, 50, -0.2);
+                    ctx.strokeStyle = "#a3e635";
+                    ctx.lineWidth = 7;
+                    ctx.beginPath(); ctx.moveTo(920, 345); ctx.lineTo(1075, 345); ctx.stroke();
+                    draw3DLeaf(ctx, 965, 305, 38, 20, -0.3);
+                    draw3DLeaf(ctx, 1035, 305, 38, 20, -0.3);
+                    draw3DLeaf(ctx, 965, 385, 38, 20, 0.3);
+                    draw3DLeaf(ctx, 1035, 385, 38, 20, 0.3);
+                    drawLabelBadge(ctx, 880, 525, "Simple (1 lámina) vs Compuesta (Folíolos)", "#0f172a", "#34d399", "#a7f3d0");
+                    break;
+                }
+            }
+
+            // Pie de lámina
+            ctx.fillStyle = "rgba(8, 27, 56, 0.92)";
+            ctx.fillRect(0, 685, 1200, 65);
+            ctx.fillStyle = "#cbd5e1";
+            ctx.font = "700 19px 'Plus Jakarta Sans', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("💡 Haz clic sobre la imagen o en el botón 'Ampliar Imagen 3D (Zoom +)' para verla en pantalla completa", 600, 725);
+
+            return canvas.toDataURL("image/png", 1.0);
+        }
+
+        // ==========================================
+        // PANEL DE CONTROL EXCLUSIVO DEL DOCENTE
+        // ==========================================
+        function populateTeacherJumpSelect() {
+            const sel = document.getElementById("teacherJumpSelect");
+            if (!sel) return;
+            sel.innerHTML = "";
+            questions.forEach((q, idx) => {
+                const opt = document.createElement("option");
+                opt.value = idx;
+                opt.textContent = `Pregunta ${idx + 1} (${q.type === "open" ? "Abierta" : "Cerrada"}) - ${q.topic}`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function openTeacherModal() {
+            document.getElementById("teacherModal").classList.remove("hidden");
+            document.getElementById("teacherPasswordInput").focus();
+        }
+
+        function closeTeacherModal() {
+            document.getElementById("teacherModal").classList.add("hidden");
+        }
+
+        function verifyTeacherPassword() {
+            const pass = document.getElementById("teacherPasswordInput").value.trim();
+            const err = document.getElementById("teacherLoginError");
+            if (pass === "dmar2026" || pass === "0323") {
+                err.classList.add("hidden");
+                document.getElementById("teacherLoginSection").classList.add("hidden");
+                document.getElementById("teacherControlsSection").classList.remove("hidden");
+                showToast("Panel docente desbloqueado", "🔑");
+            } else {
+                err.classList.remove("hidden");
+            }
+        }
+
+        function teacherActionStartDirect() {
+            closeTeacherModal();
+            if (!examStarted) {
+                startExam(true);
+            }
+        }
+
+        function teacherJumpToSelected() {
+            const idx = parseInt(document.getElementById("teacherJumpSelect").value, 10);
+            closeTeacherModal();
+            if (!examStarted) startExam(true);
+            loadQuestion(idx);
+        }
+
+        function teacherJumpToOpenQuestion() {
+            closeTeacherModal();
+            if (!examStarted) startExam(true);
+            loadQuestion(14);
+        }
+
+        function teacherForceFinish() {
+            closeTeacherModal();
+            if (!examStarted) startExam(true);
+            confirmAndFinishExam();
+        }
+
+        // ==========================================
+        // MODAL DE CONFIRMACIÓN Y CÁLCULO DE NOTA
+        // ==========================================
+        function openFinishConfirmModal() {
+            let unansweredClosed = 0;
+            for (let i = 0; i < 14; i++) {
+                if (userAnswers[i] === null) unansweredClosed++;
+            }
+            const openValid = isOpenAnswerValid(openAnswerText);
+            const summaryEl = document.getElementById("finishModalSummaryText");
+
+            if (unansweredClosed === 0 && openValid) {
+                summaryEl.innerHTML = `<strong class="text-emerald-300">¡Excelente trabajo!</strong> Has respondido todas las <strong>14 preguntas cerradas</strong> y completaste la <strong>pregunta abierta N° 15</strong>.`;
+            } else {
+                summaryEl.innerHTML = `
+                    Aún tienes <strong class="text-amber-300">${unansweredClosed} pregunta(s) cerrada(s) sin marcar</strong> y la pregunta abierta N° 15 está <strong class="${openValid ? 'text-emerald-300' : 'text-amber-300'}">${openValid ? 'COMPLETA' : 'PENDIENTE (menos de 10 palabras)'}</strong>.<br><br>
+                    Puedes volver a revisar libremente o entregar ahora mismo.
+                `;
+            }
+
+            document.getElementById("finishConfirmModal").classList.remove("hidden");
+        }
+
+        function closeFinishConfirmModal() {
+            document.getElementById("finishConfirmModal").classList.add("hidden");
+        }
+
+        function calculateEvaluationSummary() {
+            let correctClosed = 0;
+            let answeredCount = 0;
+            const patternParts = [];
+            const letters = ["A", "B", "C", "D"];
+
+            for (let i = 0; i < 14; i++) {
+                const ans = userAnswers[i];
+                if (ans !== null) {
+                    answeredCount++;
+                    const isOk = ans === questions[i].correctIndex;
+                    if (isOk) correctClosed++;
+                    patternParts.push(`${i + 1}:${letters[ans]}(${isOk ? "OK" : "X"})`);
+                } else {
+                    patternParts.push(`${i + 1}:-(X)`);
+                }
+            }
+
+            const openValid = isOpenAnswerValid(openAnswerText);
+            if (countValidWords(openAnswerText) > 0) answeredCount++;
+            patternParts.push(`15:${openValid ? "ABIERTA_OK" : "INCOMPLETA"}`);
+
+            const closedScore = (correctClosed / 14) * EXAM_CONFIG.closedTotalPoints;
+            const openScore = openValid ? EXAM_CONFIG.openTotalPoints : 0;
+            const finalScore = Math.min(5.0, Math.max(0.0, closedScore + openScore));
+
+            return {
+                answeredCount,
+                correctClosed,
+                wrongClosed: 14 - correctClosed,
+                openValid,
+                closedScore,
+                openScore,
+                finalScore,
+                pattern: patternParts.join(" ")
+            };
+        }
+
+        function confirmAndFinishExam() {
+            closeFinishConfirmModal();
+            examFinished = true;
+            endTimeDate = new Date();
+            if (elapsedTimerInterval) clearInterval(elapsedTimerInterval);
+
+            const summary = calculateEvaluationSummary();
+
+            document.getElementById("examScreen").classList.add("hidden");
+            document.getElementById("resultsScreen").classList.remove("hidden");
+
+            document.getElementById("resultStudentSubtitle").textContent = `Estudiante: ${studentName} • Grado 6°`;
+            document.getElementById("finalScoreDisplay").textContent = summary.finalScore.toFixed(2);
+            document.getElementById("resAnsweredCount").textContent = `${summary.answeredCount} / 15`;
+            document.getElementById("resCorrectClosed").textContent = `${summary.correctClosed} / 14`;
+            document.getElementById("resWrongClosed").textContent = `${summary.wrongClosed} / 14`;
+            document.getElementById("resOpenStatus").textContent = summary.openValid ? "1 / 1 (Validada +0.50)" : "0 / 1 (Pendiente)";
+
+            const dateStr = endTimeDate.toLocaleDateString("es-CO");
+            const startStr = startTimeDate ? startTimeDate.toLocaleTimeString("es-CO", { hour12: true }) : "--:--:--";
+            const endStr = endTimeDate.toLocaleTimeString("es-CO", { hour12: true });
+            const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");
+            const secs = String(elapsedSeconds % 60).padStart(2, "0");
+
+            document.getElementById("resDate").textContent = dateStr;
+            document.getElementById("resStartTime").textContent = startStr;
+            document.getElementById("resEndTime").textContent = endStr;
+            document.getElementById("resDuration").textContent = `${mins}m ${secs}s`;
+
+            // Generar Código QR con QRious
+            const qrPayload = [
+                `INST: ${EXAM_CONFIG.institution}`,
+                `MOD: ${EXAM_CONFIG.modality}`,
+                `DOCENTE: ${EXAM_CONFIG.teacher}`,
+                `GRADO: 6`,
+                `EST: ${studentName}`,
+                `FECHA: ${dateStr} (${startStr} - ${endStr})`,
+                `NOTA: ${summary.finalScore.toFixed(2)} / 5.00`,
+                `CERRADAS: ${summary.correctClosed}/14`,
+                `ABIERTA: ${summary.openValid ? "1/1" : "0/1"}`,
+                `RESP: ${summary.pattern}`
+            ].join(" | ");
+
+            new QRious({
+                element: document.getElementById("qrCanvas"),
+                value: qrPayload,
+                size: 210,
+                level: "M"
+            });
+
+            renderDetailedReview();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function renderDetailedReview() {
+            const container = document.getElementById("detailedReviewContainer");
+            container.innerHTML = "";
+            const letters = ["A", "B", "C", "D"];
+
+            questions.forEach((q, idx) => {
+                const card = document.createElement("div");
+                if (q.type === "closed") {
+                    const userAns = userAnswers[idx];
+                    const isOk = userAns === q.correctIndex;
+                    const chosenText = userAns !== null ? `${letters[userAns]}) ${q.options[userAns]}` : "Sin responder";
+                    const correctText = `${letters[q.correctIndex]}) ${q.options[q.correctIndex]}`;
+
+                    card.className = `p-4 rounded-2xl border ${isOk ? "bg-emerald-950/40 border-emerald-500/50" : "bg-rose-950/40 border-rose-500/50"} space-y-1.5 text-sm`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between font-extrabold">
+                            <span class="text-white">Pregunta ${idx + 1} (${q.topic})</span>
+                            <span class="${isOk ? "text-emerald-300" : "text-rose-300"}">${isOk ? "✅ Correcta (+0.32 pts)" : "❌ Incorrecta (0.00 pts)"}</span>
+                        </div>
+                        <p class="text-slate-200 font-semibold">${q.stem}</p>
+                        <p class="text-xs text-slate-300"><strong>Tu respuesta:</strong> ${chosenText}</p>
+                        <p class="text-xs text-emerald-300"><strong>Respuesta correcta:</strong> ${correctText}</p>
+                    `;
+                } else {
+                    const openOk = isOpenAnswerValid(openAnswerText);
+                    card.className = `p-4 rounded-2xl border ${openOk ? "bg-emerald-950/40 border-emerald-500/50" : "bg-amber-950/40 border-amber-500/50"} space-y-1.5 text-sm`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between font-extrabold">
+                            <span class="text-white">Pregunta 15 - Abierta (${q.topic})</span>
+                            <span class="${openOk ? "text-emerald-300" : "text-amber-300"}">${openOk ? "✅ Validada (+0.50 pts)" : "⚠️ Incompleta (0.00 pts)"}</span>
+                        </div>
+                        <p class="text-slate-200 font-semibold">${q.stem}</p>
+                        <p class="text-xs text-slate-200 bg-slate-950/80 p-3 rounded-xl border border-slate-700">
+                            <strong>Texto escrito por el estudiante:</strong><br>
+                            ${openAnswerText.trim() ? openAnswerText : "(El estudiante no redactó respuesta)"}
+                        </p>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // GENERACIÓN DE REPORTE PDF DETALLADO (jsPDF)
+        // ==========================================
+        function getBannerAsJpegForPDF() {
+            const imgEl = document.getElementById("headerBannerImg");
+            try {
+                if (imgEl && imgEl.complete && imgEl.naturalWidth > 0) {
+                    const c = document.createElement("canvas");
+                    c.width = imgEl.naturalWidth;
+                    c.height = imgEl.naturalHeight;
+                    const ctx = c.getContext("2d");
+                    ctx.drawImage(imgEl, 0, 0);
+                    return c.toDataURL("image/jpeg", 0.92);
+                }
+            } catch (e) {
+                // Fallback en caso de restricción CORS local
+            }
+            return generateOfficialBannerDataURL();
+        }
+
+        function generateDetailedPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF("p", "mm", "a4");
+            const summary = calculateEvaluationSummary();
+
+            const bannerData = getBannerAsJpegForPDF();
+            doc.addImage(bannerData, "JPEG", 12, 10, 186, 36);
+
+            // Recuadro principal de resumen
+            doc.setFillColor(10, 27, 56);
+            doc.roundedRect(12, 50, 186, 52, 3, 3, "F");
+
+            doc.setTextColor(251, 191, 36);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("INFORME OFICIAL DE EVALUACIÓN ADAPTADA (APOYO VISUAL 3D - PIAR)", 16, 58);
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9.5);
+            const dateStr = endTimeDate ? endTimeDate.toLocaleDateString("es-CO") : "--/--/----";
+            const startStr = startTimeDate ? startTimeDate.toLocaleTimeString("es-CO", { hour12: true }) : "--:--:--";
+            const endStr = endTimeDate ? endTimeDate.toLocaleTimeString("es-CO", { hour12: true }) : "--:--:--";
+
+            doc.text(`Estudiante: ${studentName}`, 16, 66);
+            doc.text(`Grado: 6° • Docente: ${EXAM_CONFIG.teacher}`, 16, 72);
+            doc.text(`Fecha: ${dateStr} | Inicio: ${startStr} | Fin: ${endStr}`, 16, 78);
+            doc.text(`Preguntas Contestadas: ${summary.answeredCount} / 15 | Cerradas Correctas: ${summary.correctClosed} / 14`, 16, 84);
+            doc.text(`Pregunta Abierta Validada: ${summary.openValid ? "SÍ (1/1)" : "NO (0/1)"} | Penalizaciones: Exento PIAR`, 16, 90);
+
+            doc.setTextColor(52, 211, 153);
+            doc.setFontSize(13);
+            doc.text(`NOTA DEFINITIVA: ${summary.finalScore.toFixed(2)} / 5.00`, 16, 98);
+
+            // Insertar QR en el recuadro derecho
+            const qrCanvas = document.getElementById("qrCanvas");
+            if (qrCanvas) {
+                const qrData = qrCanvas.toDataURL("image/png");
+                doc.addImage(qrData, "PNG", 156, 54, 38, 38);
+            }
+
+            let y = 110;
+            doc.setTextColor(15, 23, 42);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("DESGLOSE DETALLADO PREGUNTA POR PREGUNTA (14 CERRADAS + 1 ABIERTA)", 12, y);
+            y += 6;
+
+            const letters = ["A", "B", "C", "D"];
+
+            questions.forEach((q, idx) => {
+                if (y > 262) {
+                    doc.addPage();
+                    y = 18;
+                }
+
+                doc.setDrawColor(200, 157, 40);
+                doc.setFillColor(248, 250, 252);
+                doc.roundedRect(12, y, 186, q.type === "open" ? 34 : 24, 2, 2, "FD");
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.setTextColor(8, 27, 56);
+
+                if (q.type === "closed") {
+                    const uAns = userAnswers[idx];
+                    const isOk = uAns === q.correctIndex;
+                    const statusLabel = isOk ? "CORRECTA (+0.32)" : "INCORRECTA (0.00)";
+                    doc.text(`Pregunta ${idx + 1} [${q.topic}] - ${statusLabel}`, 15, y + 6);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8.2);
+                    const stemLines = doc.splitTextToSize(`Enunciado: ${q.stem}`, 180);
+                    doc.text(stemLines[0], 15, y + 11.5);
+
+                    const chosenStr = uAns !== null ? `${letters[uAns]}) ${q.options[uAns]}` : "Sin responder";
+                    const correctStr = `${letters[q.correctIndex]}) ${q.options[q.correctIndex]}`;
+
+                    doc.text(doc.splitTextToSize(`Elegida: ${chosenStr}`, 180)[0], 15, y + 16.5);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(5, 150, 105);
+                    doc.text(doc.splitTextToSize(`Correcta: ${correctStr}`, 180)[0], 15, y + 21.5);
+                    y += 27;
+                } else {
+                    const openOk = isOpenAnswerValid(openAnswerText);
+                    doc.text(`Pregunta 15 (ABIERTA) [${q.topic}] - ${openOk ? "VALIDADA (+0.50)" : "INCOMPLETA (0.00)"}`, 15, y + 6);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8.2);
+                    const ansClean = openAnswerText.trim() ? openAnswerText.trim() : "(Sin respuesta escrita por el estudiante)";
+                    const openLines = doc.splitTextToSize(`Respuesta escrita del estudiante: ${ansClean}`, 178);
+                    doc.text(openLines.slice(0, 4), 15, y + 12);
+                    y += 38;
+                }
+            });
+
+            const safeName = studentName.replace(/[^a-zA-Z0-9_-]/g, "_");
+            doc.save(`Reporte_Inclusion_3D_6to_${safeName}.pdf`);
+            showToast("Reporte PDF descargado correctamente", "📄");
+        }
+
+        // TOAST VISUAL
+        let toastTimeout = null;
+        function showToast(message, icon = "✅") {
+            const toast = document.getElementById("visualToast");
+            document.getElementById("visualToastIcon").textContent = icon;
+            document.getElementById("visualToastText").textContent = message;
+            toast.classList.remove("hidden");
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add("hidden");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
